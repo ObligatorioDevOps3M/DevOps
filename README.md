@@ -20,6 +20,8 @@ Otra herramienta evaluado fue Jenkins. Pero fue descartada por la complejidad en
 
 Para pruebas unitarias usaremos Junit ya que son las que fueron codeadas en la aplicación. Y para pruebas funcionales de backend seleccionamos Newman para ejecutar los casos de prueba desde el pipeline. **(TODO)**  
 
+Para hacer análisis de código estático usaremos Sonar Cloud. 
+
 
 ### CI/CD
 
