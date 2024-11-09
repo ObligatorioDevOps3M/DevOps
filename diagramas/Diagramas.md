@@ -6,7 +6,7 @@ Se pueden visualizar con el plugin de VSCode [Markdown Preview Mermaid Support](
 
 ## Edición
 
-- Desde el IDE editando el archivo <nombre-diagrama>.MD.
+- Desde el IDE editando el archivo _nombre-diagrama_.MD.
 - Desde el sitio de [Marmaid Chart](https://mermaid.live/).
 
 ## Sintaxis
