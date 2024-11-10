@@ -1,6 +1,6 @@
 ``` mermaid
 ---
-title: Proyecto DevOps
+title: Trunk-Based para proyectos de DevOps
 ---
 gitGraph
    commit id: "first commit" 
