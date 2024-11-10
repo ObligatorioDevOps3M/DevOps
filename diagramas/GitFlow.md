@@ -1,6 +1,6 @@
 ``` mermaid
 ---
-title: Proyecto Código
+title: GitFlow para proyectos de desarrollo
 ---
 gitGraph
 
