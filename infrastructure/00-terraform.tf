@@ -13,51 +13,67 @@ provider "aws" {
   profile = "default"
 }
 
-resource "aws_vpc" "vpc-obligatario" {
+resource "aws_vpc" "vpc_obligatorio" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
-    "Name" = "vpc-obligatario"
+    "Name" = "vpc_obligatorio"
   }
 }
 
-resource "aws_subnet" "subnet-obligatario-public-1" {
-  vpc_id                  = aws_vpc.vpc-obligatario.id
+resource "aws_subnet" "subnet_obligatario_public_1" {
+  vpc_id                  = aws_vpc.vpc_obligatorio.id
   cidr_block              = "10.0.1.0/24"
   availability_zone       = "us-east-1a"
   map_public_ip_on_launch = true
 
   tags = {
-    "Name" = "subnet-obligatario-public-1"
+    "Name" = "subnet_obligatario_public_1"
   }
 }
 
-resource "aws_internet_gateway" "igw-obligatorio" {
-  vpc_id = aws_vpc.vpc-obligatario.id
+resource "aws_subnet" "subnet_obligatario_public_2" {
+  vpc_id                  = aws_vpc.vpc_obligatorio.id
+  cidr_block              = "10.0.2.0/24"
+  availability_zone       = "us-east-1b"
+  map_public_ip_on_launch = true
 
   tags = {
-    "Name" = "igw-obligatorio"
+    "Name" = "subnet_obligatario_public_2"
   }
 }
 
-resource "aws_route_table" "route-table-vpc-obligatario" {
-  vpc_id = aws_vpc.vpc-obligatario.id
+resource "aws_internet_gateway" "igw_obligatorio" {
+  vpc_id = aws_vpc.vpc_obligatorio.id
+
+  tags = {
+    "Name" = "igw_obligatorio"
+  }
 }
 
-resource "aws_route" "route-public-vpc-obligatario" {
-  route_table_id         = aws_route_table.route-table-vpc-obligatario.id
+resource "aws_route_table" "route_table_vpc_obligatorio" {
+  vpc_id = aws_vpc.vpc_obligatorio.id
+}
+
+resource "aws_route" "route_public_vpc_obligatorio" {
+  route_table_id         = aws_route_table.route_table_vpc_obligatorio.id
   destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_internet_gateway.igw-obligatorio.id
+  gateway_id             = aws_internet_gateway.igw_obligatorio.id
 }
 
-resource "aws_route_table_association" "vpc-dev-public-route-table-associate" {
-  route_table_id = aws_route_table.route-table-vpc-obligatario.id
-  subnet_id      = aws_subnet.subnet-obligatario-public-1.id
+resource "aws_route_table_association" "vpc_public_route_table_associate_1" {
+  route_table_id = aws_route_table.route_table_vpc_obligatorio.id
+  subnet_id      = aws_subnet.subnet_obligatario_public_1.id
 }
 
-resource "aws_security_group" "security-group-public-obligatario" {
-  name        = "security-group-public-obligatario"
-  vpc_id      = aws_vpc.vpc-obligatario.id
+resource "aws_route_table_association" "vpc_public_route_table_associate_2" {
+  route_table_id = aws_route_table.route_table_vpc_obligatorio.id
+  subnet_id      = aws_subnet.subnet_obligatario_public_2.id
+}
+
+resource "aws_security_group" "security_group_public_obligatario" {
+  name        = "security_group_public_obligatario"
+  vpc_id      = aws_vpc.vpc_obligatorio.id
   description = "Default Security Group for Public Obligatorio"
 
   ingress {
@@ -85,7 +101,46 @@ resource "aws_security_group" "security-group-public-obligatario" {
     cidr_blocks = ["0.0.0.0/0"]
   }
   tags = {
-    "Name" = "security-group-public-obligatario"
+    "Name" = "security_group_public_obligatario"
   }
 
+}
+
+resource "aws_eks_cluster" "cluster_obligatorio" {
+  name     = "cluster_obligatorio"
+  role_arn = "arn:aws:iam::140598534703:role/LabRole" #TODO: Hacer variable
+
+  vpc_config {
+    subnet_ids         = [aws_subnet.subnet_obligatario_public_1.id,aws_subnet.subnet_obligatario_public_2.id]
+    security_group_ids = [aws_security_group.security_group_public_obligatario.id]
+  }
+
+  tags = {
+    Environment = "develop" #TODO: Hacer variable.
+  }
+}
+
+resource "aws_eks_node_group" "node_group_obligatorio" {
+  cluster_name    = "cluster_obligatorio"
+  node_group_name = "node_group_obligatorio01"
+  node_role_arn   = "arn:aws:iam::140598534703:role/LabRole" #TODO: Hacer variable
+
+  subnet_ids = [aws_subnet.subnet_obligatario_public_1.id]
+
+  scaling_config {
+    desired_size = "2"
+    min_size     = "2"
+    max_size     = "3"
+  }
+
+  instance_types = ["t2.micro"] #TODO: Hacer variable
+  capacity_type  = "SPOT"
+
+  tags = {
+    Environment = "develop" #TODO:Hacer variable
+  }
+
+  depends_on = [
+    aws_eks_cluster.cluster_obligatorio
+  ]
 }
