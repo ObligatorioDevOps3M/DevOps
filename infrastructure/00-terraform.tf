@@ -106,6 +106,22 @@ resource "aws_security_group" "security_group_public_obligatario" {
 
 }
 
+resource "aws_ecr_repository" "ecr_obligatorio" {
+  name = "orders" #TODO: Hacer variable
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  image_tag_mutability = "MUTABLE"
+
+    tags = {
+    Environment = "develop" #TODO: Hacer variable
+    Project     = "Obligatorio" #TODO: Hacer variable
+  }
+}
+
+
 resource "aws_eks_cluster" "cluster_obligatorio" {
   name     = "cluster_obligatorio"
   role_arn = "arn:aws:iam::140598534703:role/LabRole" #TODO: Hacer variable
