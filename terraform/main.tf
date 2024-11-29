@@ -107,7 +107,7 @@ resource "aws_security_group" "security_group_public_obligatario" {
 }
 
 resource "aws_ecr_repository" "ecr_obligatorio" {
-  name = "orders" #TODO: Hacer variable
+  name = var.app_name
 
   image_scanning_configuration {
     scan_on_push = true
@@ -116,15 +116,15 @@ resource "aws_ecr_repository" "ecr_obligatorio" {
   image_tag_mutability = "MUTABLE"
 
     tags = {
-    Environment = "develop" #TODO: Hacer variable
-    Project     = "Obligatorio" #TODO: Hacer variable
+    Environment = var.environment
+    Project     = "Obligatorio"
   }
 }
 
 
 resource "aws_eks_cluster" "cluster_obligatorio" {
   name     = "cluster_obligatorio"
-  role_arn = "arn:aws:iam::140598534703:role/LabRole" #TODO: Hacer variable
+  role_arn = var.role_arn
 
   vpc_config {
     subnet_ids         = [aws_subnet.subnet_obligatario_public_1.id,aws_subnet.subnet_obligatario_public_2.id]
@@ -132,31 +132,31 @@ resource "aws_eks_cluster" "cluster_obligatorio" {
   }
 
   tags = {
-    Environment = "develop" #TODO: Hacer variable.
+    Environment = var.environment
   }
 }
 
-resource "aws_eks_node_group" "node_group_obligatorio" {
-  cluster_name    = "cluster_obligatorio"
-  node_group_name = "node_group_obligatorio01"
-  node_role_arn   = "arn:aws:iam::140598534703:role/LabRole" #TODO: Hacer variable
+# resource "aws_eks_node_group" "node_group_obligatorio" {
+#   cluster_name    = "cluster_obligatorio"
+#   node_group_name = "node_group_obligatorio01"
+#   node_role_arn   = var.role_arn
 
-  subnet_ids = [aws_subnet.subnet_obligatario_public_1.id]
+#   subnet_ids = [aws_subnet.subnet_obligatario_public_1.id]
 
-  scaling_config {
-    desired_size = "2"
-    min_size     = "2"
-    max_size     = "3"
-  }
+#   scaling_config {
+#     desired_size = "2"
+#     min_size     = "2"
+#     max_size     = "3"
+#   }
 
-  instance_types = ["t2.micro"] #TODO: Hacer variable
-  capacity_type  = "SPOT"
+#   instance_types = ["t2.micro"] #TODO: Hacer variable
+#   capacity_type  = "SPOT"
 
-  tags = {
-    Environment = "develop" #TODO:Hacer variable
-  }
+#   tags = {
+#     Environment = var.environment
+#   }
 
-  depends_on = [
-    aws_eks_cluster.cluster_obligatorio
-  ]
-}
+#   depends_on = [
+#     aws_eks_cluster.cluster_obligatorio
+#   ]
+# }
