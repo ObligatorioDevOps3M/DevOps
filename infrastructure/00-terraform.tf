@@ -87,8 +87,8 @@ resource "aws_security_group" "security_group_public_obligatario" {
 
   ingress {
     description = "Allow Port 80"
-    from_port   = 80
-    to_port     = 80
+    from_port   = 8080
+    to_port     = 8080
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
