@@ -15,9 +15,3 @@ variable "role_arn" {
   description = "ARN del rol IAM."
   type        = string
 }
-
-variable "app_name" {
-  description = "Nombre de la app. Valores: orders, products, shipping y payments"
-  type        = string
-}
-

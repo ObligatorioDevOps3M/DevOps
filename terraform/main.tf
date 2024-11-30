@@ -108,7 +108,7 @@ resource "aws_security_group" "security_group_public_obligatario" {
 }
 
 resource "aws_ecr_repository" "ecr_obligatorio" {
-  name = var.app_name
+  name = "ecr_obligatorio_${var.environment}"
 
   image_scanning_configuration {
     scan_on_push = true
