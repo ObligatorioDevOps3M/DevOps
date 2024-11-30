@@ -1,0 +1,7 @@
+{
+  "ecr_repository_uri": {
+    "sensitive": false,
+    "type": "string",
+    "value": "140598534703.dkr.ecr.us-east-1.amazonaws.com/orders"
+  }
+}
