@@ -13,6 +13,27 @@ provider "aws" {
   profile = "default"
 }
 
+# S3 bucket para publicación de sitio estático
+module "static_site" {
+  source         = "./modules/s3_static_web"
+  environment    = var.environment
+  index_document = "index.html"
+  error_document = "error.html"
+
+  tags = {
+    Environment = var.environment
+    Project     = "Obligatorio"
+  }
+}
+
+output "website_url" {
+  value = module.static_site.website_url
+}
+
+output "bucket_name" {
+  value = module.static_site.bucket_name
+}
+
 resource "aws_vpc" "vpc_obligatorio" {
   cidr_block = "10.0.0.0/16"
 

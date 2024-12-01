@@ -12,6 +12,8 @@ develop | staging | production)
     terraform apply -var-file="$1.tfvars" #-auto-approve #quizás es mejor validar y luego escribir yes.
     # Guarda referencias a recursos resultantes en el directorio "options" correspondiente.
     terraform output -raw ecr_repository_uri >./options-"$1"/ecr_repository_uri.txt
+    terraform output -raw website_url >./options-"$1"/s3_website_url.txt
+    terraform output -raw bucket_name >./options-"$1"/s3_bucket_name.txt
     ;;
 *)
     # Código para manejar valores no válidos
