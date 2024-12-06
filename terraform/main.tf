@@ -140,9 +140,8 @@ resource "aws_security_group" "security_group_public_obligatario" {
 
 }
 
-resource "aws_ecr_repository" "ecr_obligatorio" {
-  for_each = toset(["orders", "shipping", "payments","products"])
-  name     = "ecr_obligatorio_${each.key}"
+resource "aws_ecr_repository" "ecr_obligatorio_orders" {
+  name = "ecr_obligatorio_orders"
 
   image_scanning_configuration {
     scan_on_push = true
@@ -151,8 +150,49 @@ resource "aws_ecr_repository" "ecr_obligatorio" {
   image_tag_mutability = "MUTABLE"
 
   tags = {
-    Environment = each.key
-    Project     = "Obligatorio"
+    Project = "Obligatorio"
+  }
+}
+
+resource "aws_ecr_repository" "ecr_obligatorio_shipping" {
+  name = "ecr_obligatorio_shipping"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  image_tag_mutability = "MUTABLE"
+
+  tags = {
+    Project = "Obligatorio"
+  }
+}
+
+resource "aws_ecr_repository" "ecr_obligatorio_payments" {
+  name = "ecr_obligatorio_payments"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  image_tag_mutability = "MUTABLE"
+
+  tags = {
+    Project = "Obligatorio"
+  }
+}
+
+resource "aws_ecr_repository" "ecr_obligatorio_products" {
+  name = "ecr_obligatorio_products"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  image_tag_mutability = "MUTABLE"
+
+  tags = {
+    Project = "Obligatorio"
   }
 }
 
@@ -188,9 +228,8 @@ resource "aws_eks_node_group" "node_group_obligatorio" {
     max_size     = "5"
   }
 
-  instance_types = ["t2.micro"] #TODO: Hacer variable
-  capacity_type  = "SPOT"
-
+  instance_types = var.instance_types
+  capacity_type  = var.capacity_type
   tags = {
     Environment = var.environment
   }
@@ -224,7 +263,7 @@ resource "aws_apigatewayv2_route" "http_route" {
 
 resource "aws_apigatewayv2_stage" "http_stage" {
   api_id      = aws_apigatewayv2_api.http_api_obligatorio.id
-  name        = "develop" #Crear Variable
+  name        = "develop" #TODO:Crear Variable o crear todos los stages asociados a cada entorno
   description = "Develop" #Actualizar de acuerdo al entorno
   auto_deploy = true
 }

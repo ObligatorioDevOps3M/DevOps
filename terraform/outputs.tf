@@ -5,12 +5,6 @@
 #Generando un archivo json:
 #   terraform output -json > outputs.json
 
-output "ecr_repository_uri" {
-  value       = aws_ecr_repository.ecr_obligatorio.repository_url
-  description = "La URI del repositorio ECR creado"
-  depends_on = [ aws_ecr_repository.ecr_obligatorio ]
-}
-
 output "ecr_repository_uri_orders" {
   value       = aws_ecr_repository.ecr_obligatorio_orders.repository_url
   description = "La URI del repositorio de orders"

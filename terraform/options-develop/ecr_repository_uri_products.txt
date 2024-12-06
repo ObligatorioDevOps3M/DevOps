@@ -1,0 +1,1 @@
+140598534703.dkr.ecr.us-east-1.amazonaws.com/ecr_obligatorio_products
