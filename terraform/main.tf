@@ -13,18 +13,6 @@ provider "aws" {
   profile = "default"
 }
 
-data "aws_eks_cluster" "cluster" {
-  name = aws_eks_cluster.cluster_obligatorio.name
-}
-data "aws_eks_cluster_auth" "cluster" {
-  name = aws_eks_cluster.cluster_obligatorio.name
-}
-provider "kubernetes" {
-  host                   = data.aws_eks_cluster.cluster.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
-  token                  = data.aws_eks_cluster_auth.cluster.token
-}
-
 # S3 bucket para publicación de sitio estático
 module "static_site" {
   source         = "./modules/s3_static_web"
@@ -37,15 +25,6 @@ module "static_site" {
     Project     = "Obligatorio"
   }
 }
-
-output "website_url" {
-  value = module.static_site.website_url
-}
-
-output "bucket_name" {
-  value = module.static_site.bucket_name
-}
-
 resource "aws_vpc" "vpc_obligatorio" {
   cidr_block = "10.0.0.0/16"
 
@@ -140,8 +119,9 @@ resource "aws_security_group" "security_group_public_obligatario" {
 
 }
 
+#ECRs 
 resource "aws_ecr_repository" "ecr_obligatorio_orders" {
-  name = "ecr_obligatorio_orders"
+  name = "ecr_orders"
 
   image_scanning_configuration {
     scan_on_push = true
@@ -155,7 +135,7 @@ resource "aws_ecr_repository" "ecr_obligatorio_orders" {
 }
 
 resource "aws_ecr_repository" "ecr_obligatorio_shipping" {
-  name = "ecr_obligatorio_shipping"
+  name = "ecr_shipping"
 
   image_scanning_configuration {
     scan_on_push = true
@@ -169,7 +149,7 @@ resource "aws_ecr_repository" "ecr_obligatorio_shipping" {
 }
 
 resource "aws_ecr_repository" "ecr_obligatorio_payments" {
-  name = "ecr_obligatorio_payments"
+  name = "ecr_payments"
 
   image_scanning_configuration {
     scan_on_push = true
@@ -183,7 +163,7 @@ resource "aws_ecr_repository" "ecr_obligatorio_payments" {
 }
 
 resource "aws_ecr_repository" "ecr_obligatorio_products" {
-  name = "ecr_obligatorio_products"
+  name = "ecr_products"
 
   image_scanning_configuration {
     scan_on_push = true
@@ -196,7 +176,7 @@ resource "aws_ecr_repository" "ecr_obligatorio_products" {
   }
 }
 
-
+# Cluster
 resource "aws_eks_cluster" "cluster_obligatorio" {
   name     = "cluster_obligatorio_${var.environment}"
   role_arn = var.role_arn
@@ -209,10 +189,6 @@ resource "aws_eks_cluster" "cluster_obligatorio" {
   tags = {
     Environment = var.environment
   }
-}
-#TODO: Validar si esto se necesita.
-data "aws_eks_cluster_auth" "cluster_obligatorio" {
-  name = data.aws_eks_cluster.cluster.name
 }
 
 resource "aws_eks_node_group" "node_group_obligatorio" {
@@ -268,7 +244,4 @@ resource "aws_apigatewayv2_stage" "http_stage" {
   auto_deploy = true
 }
 
-output "http_api_obligatorio_url" {
-  value       = aws_apigatewayv2_api.http_api_obligatorio.api_endpoint
-  description = "Base URL of the HTTP API Gateway"
-}
+
