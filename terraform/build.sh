@@ -11,8 +11,10 @@ develop | staging | production)
     # Aplica plan
     terraform apply -var-file="$1.tfvars" #-auto-approve #quizás es mejor validar y luego escribir yes.
     # Guarda referencias a recursos resultantes en el directorio "options" correspondiente.
-    terraform output -raw ecr_repository_uri >./options-"$1"/ecr_repository_uri.txt
-    terraform output -raw website_url >./options-"$1"/s3_website_url.txt
+    terraform output -raw ecr_repository_uri_orders >./options-"$1"/ecr_repository_uri_orders.txt
+    terraform output -raw ecr_repository_uri_shipping >./options-"$1"/ecr_repository_uri_shipping.txt
+    terraform output -raw ecr_repository_uri_payments >./options-"$1"/ecr_repository_uri_payments.txt
+    terraform output -raw ecr_repository_uri_products >./options-"$1"/ecr_repository_uri_products.txt
     terraform output -raw bucket_name >./options-"$1"/s3_bucket_name.txt
     ;;
 *)

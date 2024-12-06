@@ -25,15 +25,6 @@ module "static_site" {
     Project     = "Obligatorio"
   }
 }
-
-output "website_url" {
-  value = module.static_site.website_url
-}
-
-output "bucket_name" {
-  value = module.static_site.bucket_name
-}
-
 resource "aws_vpc" "vpc_obligatorio" {
   cidr_block = "10.0.0.0/16"
 
@@ -128,8 +119,9 @@ resource "aws_security_group" "security_group_public_obligatario" {
 
 }
 
-resource "aws_ecr_repository" "ecr_obligatorio" {
-  name = "ecr_obligatorio_${var.environment}"
+#ECRs 
+resource "aws_ecr_repository" "ecr_obligatorio_orders" {
+  name = "ecr_orders"
 
   image_scanning_configuration {
     scan_on_push = true
@@ -138,12 +130,53 @@ resource "aws_ecr_repository" "ecr_obligatorio" {
   image_tag_mutability = "MUTABLE"
 
   tags = {
-    Environment = var.environment
-    Project     = "Obligatorio"
+    Project = "Obligatorio"
   }
 }
 
+resource "aws_ecr_repository" "ecr_obligatorio_shipping" {
+  name = "ecr_shipping"
 
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  image_tag_mutability = "MUTABLE"
+
+  tags = {
+    Project = "Obligatorio"
+  }
+}
+
+resource "aws_ecr_repository" "ecr_obligatorio_payments" {
+  name = "ecr_payments"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  image_tag_mutability = "MUTABLE"
+
+  tags = {
+    Project = "Obligatorio"
+  }
+}
+
+resource "aws_ecr_repository" "ecr_obligatorio_products" {
+  name = "ecr_products"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  image_tag_mutability = "MUTABLE"
+
+  tags = {
+    Project = "Obligatorio"
+  }
+}
+
+# Cluster
 resource "aws_eks_cluster" "cluster_obligatorio" {
   name     = "cluster_obligatorio_${var.environment}"
   role_arn = var.role_arn
@@ -158,27 +191,57 @@ resource "aws_eks_cluster" "cluster_obligatorio" {
   }
 }
 
-# resource "aws_eks_node_group" "node_group_obligatorio" {
-#   cluster_name    = "cluster_obligatorio"
-#   node_group_name = "node_group_obligatorio01"
-#   node_role_arn   = var.role_arn
+resource "aws_eks_node_group" "node_group_obligatorio" {
+  cluster_name    = aws_eks_cluster.cluster_obligatorio.name
+  node_group_name = "node_group_obligatorio01"
+  node_role_arn   = var.role_arn
 
-#   subnet_ids = [aws_subnet.subnet_obligatario_public_1.id]
+  subnet_ids = [aws_subnet.subnet_obligatario_public_1.id, aws_subnet.subnet_obligatario_public_2.id]
 
-#   scaling_config {
-#     desired_size = "2"
-#     min_size     = "2"
-#     max_size     = "3"
-#   }
+  scaling_config {
+    desired_size = "2"
+    min_size     = "2"
+    max_size     = "5"
+  }
 
-#   instance_types = ["t2.micro"] #TODO: Hacer variable
-#   capacity_type  = "SPOT"
+  instance_types = var.instance_types
+  capacity_type  = var.capacity_type
+  tags = {
+    Environment = var.environment
+  }
 
-#   tags = {
-#     Environment = var.environment
-#   }
+  depends_on = [
+    aws_eks_cluster.cluster_obligatorio
+  ]
+}
 
-#   depends_on = [
-#     aws_eks_cluster.cluster_obligatorio
-#   ]
-# }
+# API Gateway tipo HTTP API
+resource "aws_apigatewayv2_api" "http_api_obligatorio" {
+  name          = "http-api-obligatorio"
+  protocol_type = "HTTP"
+}
+
+resource "aws_apigatewayv2_integration" "http_integration" {
+  api_id = aws_apigatewayv2_api.http_api_obligatorio.id
+
+  integration_type = "HTTP_PROXY"
+  integration_uri  = "https://orders.example.com" #HTTPS? IP?
+
+  integration_method     = "ANY"
+  payload_format_version = "1.0"
+}
+
+resource "aws_apigatewayv2_route" "http_route" {
+  api_id    = aws_apigatewayv2_api.http_api_obligatorio.id
+  route_key = "ANY /orders"
+  target    = "integrations/${aws_apigatewayv2_integration.http_integration.id}"
+}
+
+resource "aws_apigatewayv2_stage" "http_stage" {
+  api_id      = aws_apigatewayv2_api.http_api_obligatorio.id
+  name        = "develop" #TODO:Crear Variable o crear todos los stages asociados a cada entorno
+  description = "Develop" #Actualizar de acuerdo al entorno
+  auto_deploy = true
+}
+
+

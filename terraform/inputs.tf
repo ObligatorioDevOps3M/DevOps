@@ -15,3 +15,14 @@ variable "role_arn" {
   description = "ARN del rol IAM."
   type        = string
 }
+variable "instance_types" {
+  description = "Lista de tipos de instancia EC2 para el node group"
+  type        = list(string)
+  default     = ["t2.micro"]
+}
+
+variable "capacity_type" {
+  description = "Tipo de capacidad para las instancias EC2. Valores: ON_DEMAND, SPOT"
+  type        = string
+  default     = "SPOT"
+}
