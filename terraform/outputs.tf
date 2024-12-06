@@ -10,3 +10,27 @@ output "ecr_repository_uri" {
   description = "La URI del repositorio ECR creado"
   depends_on = [ aws_ecr_repository.ecr_obligatorio ]
 }
+
+output "ecr_repository_uri_orders" {
+  value       = aws_ecr_repository.ecr_obligatorio_orders.repository_url
+  description = "La URI del repositorio de orders"
+  depends_on = [ aws_ecr_repository.ecr_obligatorio_orders ]
+}
+
+output "ecr_repository_uri_shipping" {
+  value       = aws_ecr_repository.ecr_obligatorio_shipping.repository_url
+  description = "La URI del repositorio de shipping"
+  depends_on = [ aws_ecr_repository.ecr_obligatorio_shipping ]
+}
+
+output "ecr_repository_uri_payments" {
+  value       = aws_ecr_repository.ecr_obligatorio_payments.repository_url
+  description = "La URI del repositorio de payments"
+  depends_on = [ aws_ecr_repository.ecr_obligatorio_payments ]
+}
+
+output "ecr_repository_uri_products" {
+  value       = aws_ecr_repository.ecr_obligatorio_products.repository_url
+  description = "La URI del repositorio de products"
+  depends_on = [ aws_ecr_repository.ecr_obligatorio_products ]
+}
