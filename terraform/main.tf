@@ -90,18 +90,31 @@ resource "aws_security_group" "security_group_public_obligatario" {
   description = "Default Security Group for Public Obligatorio"
 
   ingress {
-    description = "Allow Port 22"
-    from_port   = 22
-    to_port     = 22
+    description = "Allow Port 8080"
+    from_port   = 8080
+    to_port     = 8080
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-
+  }
+  ingress {
+    description = "Allow Port 8081"
+    from_port   = 8081
+    to_port     = 8081
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
-    description = "Allow Port 80"
-    from_port   = 8080
-    to_port     = 8080
+    description = "Allow Port 8083"
+    from_port   = 8083
+    to_port     = 8083
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    description = "Allow Port 8085"
+    from_port   = 8085
+    to_port     = 8085
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
