@@ -199,9 +199,9 @@ resource "aws_eks_node_group" "node_group_obligatorio" {
   subnet_ids = [aws_subnet.subnet_obligatario_public_1.id, aws_subnet.subnet_obligatario_public_2.id]
 
   scaling_config {
-    desired_size = "2"
-    min_size     = "2"
-    max_size     = "5"
+    desired_size = "4"
+    min_size     = "4"
+    max_size     = "10"
   }
 
   instance_types = var.instance_types
