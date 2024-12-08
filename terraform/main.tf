@@ -134,6 +134,7 @@ resource "aws_security_group" "security_group_public_obligatario" {
 
 #ECRs 
 resource "aws_ecr_repository" "ecr_obligatorio_orders" {
+  count = var.environment == "staging" || var.environment == "production" ? 0 : 1
   name = "ecr_orders"
 
   image_scanning_configuration {
@@ -148,6 +149,7 @@ resource "aws_ecr_repository" "ecr_obligatorio_orders" {
 }
 
 resource "aws_ecr_repository" "ecr_obligatorio_shipping" {
+  count = var.environment == "staging" || var.environment == "production" ? 0 : 1
   name = "ecr_shipping"
 
   image_scanning_configuration {
@@ -162,6 +164,7 @@ resource "aws_ecr_repository" "ecr_obligatorio_shipping" {
 }
 
 resource "aws_ecr_repository" "ecr_obligatorio_payments" {
+  count = var.environment == "staging" || var.environment == "production" ? 0 : 1
   name = "ecr_payments"
 
   image_scanning_configuration {
@@ -176,6 +179,7 @@ resource "aws_ecr_repository" "ecr_obligatorio_payments" {
 }
 
 resource "aws_ecr_repository" "ecr_obligatorio_products" {
+  count = var.environment == "staging" || var.environment == "production" ? 0 : 1
   name = "ecr_products"
 
   image_scanning_configuration {
@@ -206,7 +210,7 @@ resource "aws_eks_cluster" "cluster_obligatorio" {
 
 resource "aws_eks_node_group" "node_group_obligatorio" {
   cluster_name    = aws_eks_cluster.cluster_obligatorio.name
-  node_group_name = "node_group_obligatorio01"
+  node_group_name = "node_group_obligatorio_${var.environment}"
   node_role_arn   = var.role_arn
 
   subnet_ids = [aws_subnet.subnet_obligatario_public_1.id, aws_subnet.subnet_obligatario_public_2.id]
