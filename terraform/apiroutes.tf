@@ -4,10 +4,10 @@
 #Porque hay que esperar a que se haga un deploy inicial de un entorno para que estén disponibles los services de kubernetes.
 
 locals {
-  products_url = trimspace(file("${path.module}/options-${var.environment}/service-url-products.txt"))
-  orders_url   = trimspace(file("${path.module}/options-${var.environment}/service-url-orders.txt"))
-  payments_url = trimspace(file("${path.module}/options-${var.environment}/service-url-payments.txt"))
-  shipping_url = trimspace(file("${path.module}/options-${var.environment}/service-url-shipping.txt"))
+  products_url = fileexists("${path.module}/options-${var.environment}/service-url-products.txt") ? trimspace(file("${path.module}/options-${var.environment}/service-url-products.txt")) : ""
+  orders_url   = fileexists("${path.module}/options-${var.environment}/service-url-orders.txt") ? trimspace(file("${path.module}/options-${var.environment}/service-url-orders.txt")) : ""
+  payments_url = fileexists("${path.module}/options-${var.environment}/service-url-payments.txt") ? trimspace(file("${path.module}/options-${var.environment}/service-url-payments.txt")) :""
+  shipping_url = fileexists("${path.module}/options-${var.environment}/service-url-shipping.txt") ? trimspace(file("${path.module}/options-${var.environment}/service-url-shipping.txt")) :""
 }
 
 # API Gateway tipo HTTP API
