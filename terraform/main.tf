@@ -15,6 +15,7 @@ provider "aws" {
 
 # S3 bucket para publicación de sitio estático
 module "static_site" {
+  count          = var.create_routes ? 0 : 1 # Crea el S3 solamente si no estamos en la etapa de creación de api gateway (previene eliminación de S3)
   source         = "./modules/s3_static_web"
   environment    = var.environment
   index_document = "index.html"
@@ -227,34 +228,3 @@ resource "aws_eks_node_group" "node_group_obligatorio" {
     aws_eks_cluster.cluster_obligatorio
   ]
 }
-
-# API Gateway tipo HTTP API
-resource "aws_apigatewayv2_api" "http_api_obligatorio" {
-  name          = "http-api-obligatorio"
-  protocol_type = "HTTP"
-}
-
-resource "aws_apigatewayv2_integration" "http_integration" {
-  api_id = aws_apigatewayv2_api.http_api_obligatorio.id
-
-  integration_type = "HTTP_PROXY"
-  integration_uri  = "https://orders.example.com" #HTTPS? IP?
-
-  integration_method     = "ANY"
-  payload_format_version = "1.0"
-}
-
-resource "aws_apigatewayv2_route" "http_route" {
-  api_id    = aws_apigatewayv2_api.http_api_obligatorio.id
-  route_key = "ANY /orders"
-  target    = "integrations/${aws_apigatewayv2_integration.http_integration.id}"
-}
-
-resource "aws_apigatewayv2_stage" "http_stage" {
-  api_id      = aws_apigatewayv2_api.http_api_obligatorio.id
-  name        = "develop" #TODO:Crear Variable o crear todos los stages asociados a cada entorno
-  description = "Develop" #Actualizar de acuerdo al entorno
-  auto_deploy = true
-}
-
-

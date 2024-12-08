@@ -30,10 +30,16 @@ output "ecr_repository_uri_products" {
 }
 
 output "http_api_obligatorio_url" {
-  value       = aws_apigatewayv2_api.http_api_obligatorio.api_endpoint
+  value       = one(aws_apigatewayv2_api.gateway_obligatorio[*].api_endpoint)
   description = "Base URL of the HTTP API Gateway"
 }
 
 output "bucket_name" {
-  value = module.static_site.bucket_name
+  value = one(module.static_site[*].bucket_name)
 }
+
+output "public-api-url" {
+  value       = one(aws_apigatewayv2_stage.develop[*].invoke_url) #Se usa ONE porque esta var se llena si el flag de creación de API Gateway es true solamente.
+  description = "URL de invocación para acceso público a la API"
+}
+

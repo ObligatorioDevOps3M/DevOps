@@ -26,3 +26,8 @@ variable "capacity_type" {
   type        = string
   default     = "SPOT"
 }
+
+#Permite crear API Gateway y rutas.
+variable "create_routes" {
+  default = false
+}
