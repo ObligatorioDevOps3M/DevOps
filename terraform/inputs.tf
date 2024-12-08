@@ -26,3 +26,8 @@ variable "capacity_type" {
   type        = string
   default     = "SPOT"
 }
+
+#Permite crear rutas de api gateway. También indica que no tiene que re construir los S3.
+variable "create_routes" {
+  default = false
+}

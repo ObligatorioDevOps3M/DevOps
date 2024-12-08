@@ -30,10 +30,21 @@ output "ecr_repository_uri_products" {
 }
 
 output "http_api_obligatorio_url" {
-  value       = aws_apigatewayv2_api.http_api_obligatorio.api_endpoint
+  value       = aws_apigatewayv2_api.gateway_obligatorio[0].api_endpoint
   description = "Base URL of the HTTP API Gateway"
 }
 
 output "bucket_name" {
   value = module.static_site.bucket_name
 }
+
+# output "salida_test" {
+#   value       = aws_apigatewayv2_api.gateway_obligatorio
+#   description = "Console.log()"
+# }
+
+output "public-api-url" {
+  value       = aws_apigatewayv2_stage.develop.invoke_url
+  description = "URL de invocación para acceso público a la API"
+}
+

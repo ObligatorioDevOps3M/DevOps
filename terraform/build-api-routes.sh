@@ -9,7 +9,10 @@ develop | staging | production)
     # Crea o se cambia al workspace correspondiente
     terraform workspace select -or-create "$1"
     # Aplica plan
-    terraform destroy -var-file="$1.tfvars" -var create_routes="true"
+    terraform apply -var-file="$1.tfvars" -var create_routes="true" -auto-approve 
+    # Guarda referencias a recursos resultantes en el directorio "options" correspondiente.
+    terraform output -raw public-api-url >./options-"$1"/public-api-url.txt
+    
     ;;
 *)
     # Código para manejar valores no válidos
