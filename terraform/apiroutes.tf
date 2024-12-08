@@ -17,6 +17,7 @@ resource "aws_apigatewayv2_api" "gateway_obligatorio" {
   protocol_type = "HTTP"
 }
 
+# Products
 resource "aws_apigatewayv2_integration" "products_integration" {
   count                  = var.create_routes ? 1 : 0
   api_id                 = aws_apigatewayv2_api.gateway_obligatorio[0].id
@@ -41,6 +42,7 @@ resource "aws_apigatewayv2_route" "get_products_route_2" {
   target = "integrations/${aws_apigatewayv2_integration.products_integration[count.index].id}"
 }
 
+# Orders
 resource "aws_apigatewayv2_integration" "orders_integration" {
   count                  = var.create_routes ? 1 : 0
   api_id                 = aws_apigatewayv2_api.gateway_obligatorio[0].id
@@ -60,6 +62,7 @@ resource "aws_apigatewayv2_route" "get_orders_route" {
   depends_on = [ aws_apigatewayv2_integration.orders_integration ]
 }
 
+#Payments
 resource "aws_apigatewayv2_integration" "payments_integration" {
   count                  = var.create_routes ? 1 : 0
   api_id                 = aws_apigatewayv2_api.gateway_obligatorio[0].id
@@ -77,6 +80,7 @@ resource "aws_apigatewayv2_route" "get_payments_route" {
   target = "integrations/${aws_apigatewayv2_integration.payments_integration[count.index].id}"
 }
 
+#Shipping
 resource "aws_apigatewayv2_integration" "shipping_integration" {
   count                  = var.create_routes ? 1 : 0
   api_id                 = aws_apigatewayv2_api.gateway_obligatorio[0].id
@@ -94,6 +98,7 @@ resource "aws_apigatewayv2_route" "get_shipping_route" {
   target = "integrations/${aws_apigatewayv2_integration.shipping_integration[count.index].id}"
 }
 
+# Stage
 resource "aws_apigatewayv2_stage" "develop" {
   count  = var.create_routes ? 1 : 0
   api_id = aws_apigatewayv2_api.gateway_obligatorio[0].id
@@ -106,6 +111,7 @@ resource "aws_apigatewayv2_stage" "develop" {
   depends_on = [aws_apigatewayv2_route.get_products_route]
 }
 
+# Deploy
 resource "aws_apigatewayv2_deployment" "deploy_inicial" {
   count  = var.create_routes ? 1 : 0
   api_id = aws_apigatewayv2_api.gateway_obligatorio[0].id

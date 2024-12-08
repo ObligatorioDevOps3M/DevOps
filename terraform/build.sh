@@ -9,7 +9,7 @@ develop | staging | production)
     # Crea o se cambia al workspace correspondiente
     terraform workspace select -or-create "$1"
     # Aplica plan
-    terraform apply -var-file="$1.tfvars" -var create_routes="false" #-auto-approve #quizás es mejor validar y luego escribir yes.
+    terraform apply -var-file="$1.tfvars" -var create_routes="false" #-auto-approve
     # Guarda referencias a recursos resultantes en el directorio "options" correspondiente.
     terraform output -raw ecr_repository_uri_orders >./options-"$1"/ecr_repository_uri_orders.txt
     terraform output -raw ecr_repository_uri_shipping >./options-"$1"/ecr_repository_uri_shipping.txt
