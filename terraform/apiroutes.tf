@@ -5,6 +5,9 @@
 
 locals {
   products_url = file("${path.module}/options-${var.environment}/service-url-products.txt")
+  orders_url = file("${path.module}/options-${var.environment}/service-url-orders.txt")
+  payments_url = file("${path.module}/options-${var.environment}/service-url-payments.txt")
+  shipping_url = file("${path.module}/options-${var.environment}/service-url-shipping.txt")
 }
 
 # API Gateway tipo HTTP API
@@ -18,7 +21,7 @@ resource "aws_apigatewayv2_integration" "products_integration" {
   count                  = var.create_routes ? 1 : 0
   api_id                 = aws_apigatewayv2_api.gateway_obligatorio[0].id
   integration_type       = "HTTP_PROXY"
-  integration_uri        = local.products_url
+  integration_uri        = join("", [local.products_url, "/products"])
   payload_format_version = "1.0"
   integration_method     = "GET"
 }
@@ -28,7 +31,67 @@ resource "aws_apigatewayv2_route" "get_products_route" {
   api_id    = aws_apigatewayv2_api.gateway_obligatorio[0].id
   route_key = "GET /products"
 
-  target = "integrations/${aws_apigatewayv2_integration.products_integration[0].id}"
+  target = "integrations/${aws_apigatewayv2_integration.products_integration[count.index].id}"
+}
+resource "aws_apigatewayv2_route" "get_products_route_2" {
+  count     = var.create_routes ? 1 : 0
+  api_id    = aws_apigatewayv2_api.gateway_obligatorio[0].id
+  route_key = "GET /products/{id}"
+
+  target = "integrations/${aws_apigatewayv2_integration.products_integration[count.index].id}"
+}
+
+resource "aws_apigatewayv2_integration" "orders_integration" {
+  count                  = var.create_routes ? 1 : 0
+  api_id                 = aws_apigatewayv2_api.gateway_obligatorio[0].id
+  integration_type       = "HTTP_PROXY"
+  integration_uri        = join("", [local.orders_url, "/orders"])
+  payload_format_version = "1.0"
+  integration_method     = "POST"
+}
+
+resource "aws_apigatewayv2_route" "get_orders_route" {
+  count     = var.create_routes ? 1 : 0
+  api_id    = aws_apigatewayv2_api.gateway_obligatorio[0].id
+  route_key = "POST /orders"
+
+  target = "integrations/${aws_apigatewayv2_integration.orders_integration[count.index].id}"
+
+  depends_on = [ aws_apigatewayv2_integration.orders_integration ]
+}
+
+resource "aws_apigatewayv2_integration" "payments_integration" {
+  count                  = var.create_routes ? 1 : 0
+  api_id                 = aws_apigatewayv2_api.gateway_obligatorio[0].id
+  integration_type       = "HTTP_PROXY"
+  integration_uri        = join("", [local.payments_url, "/payments"])
+  payload_format_version = "1.0"
+  integration_method     = "POST"
+}
+
+resource "aws_apigatewayv2_route" "get_payments_route" {
+  count     = var.create_routes ? 1 : 0
+  api_id    = aws_apigatewayv2_api.gateway_obligatorio[0].id
+  route_key = "POST /payments/{id}"
+
+  target = "integrations/${aws_apigatewayv2_integration.payments_integration[count.index].id}"
+}
+
+resource "aws_apigatewayv2_integration" "shipping_integration" {
+  count                  = var.create_routes ? 1 : 0
+  api_id                 = aws_apigatewayv2_api.gateway_obligatorio[0].id
+  integration_type       = "HTTP_PROXY"
+  integration_uri        = join("", [local.shipping_url, "/shipping"])
+  payload_format_version = "1.0"
+  integration_method     = "GET"
+}
+
+resource "aws_apigatewayv2_route" "get_shipping_route" {
+  count     = var.create_routes ? 1 : 0
+  api_id    = aws_apigatewayv2_api.gateway_obligatorio[0].id
+  route_key = "GET /shipping/{id}"
+
+  target = "integrations/${aws_apigatewayv2_integration.shipping_integration[count.index].id}"
 }
 
 resource "aws_apigatewayv2_stage" "develop" {
@@ -36,7 +99,7 @@ resource "aws_apigatewayv2_stage" "develop" {
   api_id = aws_apigatewayv2_api.gateway_obligatorio[0].id
   name   = "develop"
 
-  deployment_id = aws_apigatewayv2_deployment.deploy_inicial[count.index] #Accede a la primer instancia. Si crea una, count.index vale 0. So no se crea una instancia, entonces no se lee el valor porque no se entra a esta línea.
+  deployment_id = aws_apigatewayv2_deployment.deploy_inicial[count.index].id #Accede a la primer instancia. Si crea una, count.index vale 0. So no se crea una instancia, entonces no se lee el valor porque no se entra a esta línea.
 
   auto_deploy = true
 

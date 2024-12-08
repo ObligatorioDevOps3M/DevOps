@@ -35,7 +35,7 @@ output "http_api_obligatorio_url" {
 }
 
 output "bucket_name" {
-  value = module.static_site.bucket_name
+  value = one(module.static_site[*].bucket_name)
 }
 
 output "public-api-url" {
