@@ -4,10 +4,10 @@
 #Porque hay que esperar a que se haga un deploy inicial de un entorno para que estén disponibles los services de kubernetes.
 
 locals {
-  products_url = file("${path.module}/options-${var.environment}/service-url-products.txt")
-  orders_url   = file("${path.module}/options-${var.environment}/service-url-orders.txt")
-  payments_url = file("${path.module}/options-${var.environment}/service-url-payments.txt")
-  shipping_url = file("${path.module}/options-${var.environment}/service-url-shipping.txt")
+  products_url = trimspace(file("${path.module}/options-${var.environment}/service-url-products.txt"))
+  orders_url   = trimspace(file("${path.module}/options-${var.environment}/service-url-orders.txt"))
+  payments_url = trimspace(file("${path.module}/options-${var.environment}/service-url-payments.txt"))
+  shipping_url = trimspace(file("${path.module}/options-${var.environment}/service-url-shipping.txt"))
 }
 
 # API Gateway tipo HTTP API
@@ -112,7 +112,7 @@ resource "aws_apigatewayv2_route" "get_shipping_route" {
 resource "aws_apigatewayv2_stage" "current_stage" {
   count  = var.create_routes ? 1 : 0
   api_id = aws_apigatewayv2_api.gateway_obligatorio[0].id
-  name   = "${var.environment}"
+  name   = var.environment
 
   deployment_id = aws_apigatewayv2_deployment.deploy_inicial[count.index].id #Accede a la primer instancia. Si crea una, count.index vale 0. So no se crea una instancia, entonces no se lee el valor porque no se entra a esta línea.
 
@@ -121,6 +121,7 @@ resource "aws_apigatewayv2_stage" "current_stage" {
 
 # Deploy
 resource "aws_apigatewayv2_deployment" "deploy_inicial" {
-  count  = var.create_routes ? 1 : 0
-  api_id = aws_apigatewayv2_api.gateway_obligatorio[0].id
+  count      = var.create_routes ? 1 : 0
+  api_id     = aws_apigatewayv2_api.gateway_obligatorio[0].id
+  depends_on = [aws_apigatewayv2_route.get_products_route, aws_apigatewayv2_route.get_products_route_2, aws_apigatewayv2_route.get_orders_route, aws_apigatewayv2_route.get_payments_route, aws_apigatewayv2_route.get_shipping_route]
 }
