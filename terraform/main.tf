@@ -41,7 +41,7 @@ resource "aws_subnet" "subnet_obligatario_public_1" {
   map_public_ip_on_launch = true
 
   tags = {
-    "Name" = "subnet_obligatario_public_1"
+    "Name" = "subnet_obligatario_public_${var.environment}_1"
   }
 }
 
@@ -52,7 +52,7 @@ resource "aws_subnet" "subnet_obligatario_public_2" {
   map_public_ip_on_launch = true
 
   tags = {
-    "Name" = "subnet_obligatario_public_2"
+    "Name" = "subnet_obligatario_public_${var.environment}_2"
   }
 }
 
