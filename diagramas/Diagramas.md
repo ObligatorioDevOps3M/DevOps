@@ -1,4 +1,4 @@
-# Diagamas
+# Diagramas
 Ayuda para mantener y visualizar los diagramas.
 
 ## Visualización
