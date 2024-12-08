@@ -8,8 +8,8 @@ case "$1" in
 develop | staging | production)
     # Crea o se cambia al workspace correspondiente
     terraform workspace select -or-create "$1"
-    # Aplica plan
-    terraform destroy -var-file="$1.tfvars" -var create_routes="true"
+    # Aplica plan (se agrega el true para que se tengan en cuenta la API Getaway a la hora de destruir)
+    terraform destroy -var-file="$1.tfvars" -var create_routes="true" 
     ;;
 *)
     # Código para manejar valores no válidos

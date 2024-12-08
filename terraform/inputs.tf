@@ -27,7 +27,7 @@ variable "capacity_type" {
   default     = "SPOT"
 }
 
-#Permite crear rutas de api gateway. También indica que no tiene que re construir los S3.
+#Permite crear API Gateway y rutas.
 variable "create_routes" {
   default = false
 }
