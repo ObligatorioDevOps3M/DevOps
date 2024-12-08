@@ -11,14 +11,19 @@ develop | staging | production)
     # Aplica plan
     terraform apply -var-file="$1.tfvars" -var create_routes="false" #-auto-approve
     # Guarda referencias a recursos resultantes en el directorio "options" correspondiente.
-    terraform output -raw ecr_repository_uri_orders >./options-"$1"/ecr_repository_uri_orders.txt
-    terraform output -raw ecr_repository_uri_shipping >./options-"$1"/ecr_repository_uri_shipping.txt
-    terraform output -raw ecr_repository_uri_payments >./options-"$1"/ecr_repository_uri_payments.txt
-    terraform output -raw ecr_repository_uri_products >./options-"$1"/ecr_repository_uri_products.txt
     terraform output -raw bucket_name >./options-"$1"/s3_bucket_name.txt
+
+    if [ "$1" == "develop" ]; then #FIX: Develop genera las URI de los ECR y estos son para todos los entornos.
+        terraform output -raw ecr_repository_uri_orders >./options-"$1"/ecr_repository_uri_orders.txt
+        terraform output -raw ecr_repository_uri_shipping >./options-"$1"/ecr_repository_uri_shipping.txt
+        terraform output -raw ecr_repository_uri_payments >./options-"$1"/ecr_repository_uri_payments.txt
+        terraform output -raw ecr_repository_uri_products >./options-"$1"/ecr_repository_uri_products.txt
+        cp -r ./options-develop/ecr_repository_uri_* ./options-staging/
+        cp -r ./options-develop/ecr_repository_uri_* ./options-production/
+    fi
     ;;
 *)
-    # Código para manejar valores no válidos
+    # Valores no válidos
     echo "Parámetro incorrecto. Los valores aceptados son: <develop|staging|production>"
     exit 2
     ;;

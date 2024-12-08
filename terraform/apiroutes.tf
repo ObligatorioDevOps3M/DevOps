@@ -5,7 +5,7 @@
 
 locals {
   products_url = file("${path.module}/options-${var.environment}/service-url-products.txt")
-  orders_url = file("${path.module}/options-${var.environment}/service-url-orders.txt")
+  orders_url   = file("${path.module}/options-${var.environment}/service-url-orders.txt")
   payments_url = file("${path.module}/options-${var.environment}/service-url-payments.txt")
   shipping_url = file("${path.module}/options-${var.environment}/service-url-shipping.txt")
 }
@@ -13,7 +13,7 @@ locals {
 # API Gateway tipo HTTP API
 resource "aws_apigatewayv2_api" "gateway_obligatorio" {
   count         = var.create_routes ? 1 : 0
-  name          = "api-obligatorio"
+  name          = "api-obligatorio_${var.environment}"
   protocol_type = "HTTP"
 }
 
@@ -70,7 +70,6 @@ resource "aws_apigatewayv2_route" "get_orders_route" {
 
   target = "integrations/${aws_apigatewayv2_integration.orders_integration[count.index].id}"
 
-  depends_on = [ aws_apigatewayv2_integration.orders_integration ]
 }
 
 #Payments
@@ -110,16 +109,14 @@ resource "aws_apigatewayv2_route" "get_shipping_route" {
 }
 
 # Stage
-resource "aws_apigatewayv2_stage" "develop" {
+resource "aws_apigatewayv2_stage" "current_stage" {
   count  = var.create_routes ? 1 : 0
   api_id = aws_apigatewayv2_api.gateway_obligatorio[0].id
-  name   = "develop"
+  name   = "${var.environment}"
 
   deployment_id = aws_apigatewayv2_deployment.deploy_inicial[count.index].id #Accede a la primer instancia. Si crea una, count.index vale 0. So no se crea una instancia, entonces no se lee el valor porque no se entra a esta línea.
 
   auto_deploy = true
-
-  depends_on = [aws_apigatewayv2_route.get_products_route]
 }
 
 # Deploy
