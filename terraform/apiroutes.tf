@@ -27,6 +27,15 @@ resource "aws_apigatewayv2_integration" "products_integration" {
   integration_method     = "GET"
 }
 
+resource "aws_apigatewayv2_integration" "products_integration_2" {
+  count                  = var.create_routes ? 1 : 0
+  api_id                 = aws_apigatewayv2_api.gateway_obligatorio[0].id
+  integration_type       = "HTTP_PROXY"
+  integration_uri        = join("", [local.products_url, "/products/{id}"])
+  payload_format_version = "1.0"
+  integration_method     = "GET"
+}
+
 resource "aws_apigatewayv2_route" "get_products_route" {
   count     = var.create_routes ? 1 : 0
   api_id    = aws_apigatewayv2_api.gateway_obligatorio[0].id
@@ -39,7 +48,7 @@ resource "aws_apigatewayv2_route" "get_products_route_2" {
   api_id    = aws_apigatewayv2_api.gateway_obligatorio[0].id
   route_key = "GET /products/{id}"
 
-  target = "integrations/${aws_apigatewayv2_integration.products_integration[count.index].id}"
+  target = "integrations/${aws_apigatewayv2_integration.products_integration_2[count.index].id}"
 }
 
 # Orders
@@ -51,6 +60,8 @@ resource "aws_apigatewayv2_integration" "orders_integration" {
   payload_format_version = "1.0"
   integration_method     = "POST"
 }
+
+
 
 resource "aws_apigatewayv2_route" "get_orders_route" {
   count     = var.create_routes ? 1 : 0
@@ -67,7 +78,7 @@ resource "aws_apigatewayv2_integration" "payments_integration" {
   count                  = var.create_routes ? 1 : 0
   api_id                 = aws_apigatewayv2_api.gateway_obligatorio[0].id
   integration_type       = "HTTP_PROXY"
-  integration_uri        = join("", [local.payments_url, "/payments"])
+  integration_uri        = join("", [local.payments_url, "/payments/{id}"])
   payload_format_version = "1.0"
   integration_method     = "POST"
 }
@@ -85,7 +96,7 @@ resource "aws_apigatewayv2_integration" "shipping_integration" {
   count                  = var.create_routes ? 1 : 0
   api_id                 = aws_apigatewayv2_api.gateway_obligatorio[0].id
   integration_type       = "HTTP_PROXY"
-  integration_uri        = join("", [local.shipping_url, "/shipping"])
+  integration_uri        = join("", [local.shipping_url, "/shipping/{id}"])
   payload_format_version = "1.0"
   integration_method     = "GET"
 }

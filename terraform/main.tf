@@ -15,7 +15,6 @@ provider "aws" {
 
 # S3 bucket para publicación de sitio estático
 module "static_site" {
-  count          = var.create_routes ? 0 : 1 # Crea el S3 solamente si no estamos en la etapa de creación de api gateway (previene eliminación de S3)
   source         = "./modules/s3_static_web"
   environment    = var.environment
   index_document = "index.html"
