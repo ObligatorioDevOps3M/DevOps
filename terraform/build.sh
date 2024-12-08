@@ -13,14 +13,14 @@ develop | staging | production)
     # Guarda referencias a recursos resultantes en el directorio "options" correspondiente.
     terraform output -raw bucket_name >./options-"$1"/s3_bucket_name.txt
 
-    if [ "$1" == "develop"]; then #FIX: Develop genera las URI de los ECR y estos son para todos los entornos.
+    if [ "$1" == "develop" ]; then #FIX: Develop genera las URI de los ECR y estos son para todos los entornos.
         terraform output -raw ecr_repository_uri_orders >./options-"$1"/ecr_repository_uri_orders.txt
         terraform output -raw ecr_repository_uri_shipping >./options-"$1"/ecr_repository_uri_shipping.txt
         terraform output -raw ecr_repository_uri_payments >./options-"$1"/ecr_repository_uri_payments.txt
         terraform output -raw ecr_repository_uri_products >./options-"$1"/ecr_repository_uri_products.txt
-        cp ./options-develop/ecr_repositori_uri_*.txt ./options-staging/
-        cp ./options-develop/ecr_repositori_uri_*.txt ./options-production/
-    
+        cp -r ./options-develop/ecr_repository_uri_* ./options-staging/
+        cp -r ./options-develop/ecr_repository_uri_* ./options-production/
+    fi
     ;;
 *)
     # Valores no válidos
