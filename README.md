@@ -29,6 +29,7 @@
   - [Pruebas unitarias](#pruebas-unitarias)
   - [API Testing](#api-testing)
 - [Mejoras a futuro](#mejoras-a-futuro)
+- [Uso de la IA](#uso-de-la-ia)
 
 ---
 ## Presentación del problema
@@ -231,7 +232,7 @@ En función de las oportunidades detectadas durante la implementación, a contin
 
 2. **Extraer Lógicas Bash en Archivos Independientes**:
     
-    - Crear scripts bash dedicados en una carpeta `scripts/` dentro de los repositorios.
+    - Crear scripts bash dedicados en una carpeta `scripts` dentro de los repositorios.
     - Estos scripts pueden ser llamados desde los workflows, logrando mayor modularización
 
 3. **Separar Etapas de Build, Test y Deploy**:
@@ -245,3 +246,9 @@ En función de las oportunidades detectadas durante la implementación, a contin
 5. **Separar Infraestructura por Entornos**:
     
     - Evitar compartir infraestructura entre entornos para no crear problemas a nivel de estado de Terraform que tienen que mitigarse con código adicional
+
+## Uso de la IA
+
+- Acelerar búsquedas para dudas específicas (ej.: comandos Docker y cómo hacer un trim de un string en código Terraform)
+- Preguntas conceptuales del estilo: "cómo se integran Terraform y los deploy de EKS"
+- Preguntas sobre buenas prácticas (estructura de directorios, criterios para nombrar recursos en Terraform y taguear imágenes)
