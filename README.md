@@ -8,7 +8,30 @@ Martín Rivero – Matías Dadomo - Martín Orue
 Tutor: Federico Barceló 
 2024
 
-Índice //todo: modificar
+## Índice
+- [Presentación del problema](#presentación-del-problema)
+- [Objetivos](#objetivos)
+- [Propuesta](#propuesta)
+- [Herramientas seleccionadas](#herramientas-seleccionadas)
+- [Planificación del equipo](#planificación-del-equipo)
+- [Flujos de trabajo en Git](#flujos-de-trabajo-en-git)
+  - [Equipo Desarrollo](#equipo-desarrollo)
+    - [GitFlow](#gitflow)
+  - [Equipo DevOps](#equipo-devops)
+    - [Trunk Based](#trunk-based)
+- [Infraestructura como código (IaC)](#infraestructura-como-código-iac)
+  - [Utilizar IaC y desplegar la infraestructura en AWS](#utilizar-iac-y-desplegar-la-infraestructura-en-aws)
+- [CI/CD](#cicd)
+  - [Backend](#backend)
+    - [Explicación de build-and-deploy.yml](#explicación-de-build-and-deployyml)
+    - [Explicación de api-testing.yml](#explicación-de-api-testingyml)
+  - [Frontend](#frontend)
+    - [Explicación de build-and-deploy-to-s3.yml](#explicación-de-build-and-deploy-to-s3yml)
+    - [Explicación de build-and-test.yml](#explicación-de-build-and-testyml)
+- [Test](#test)
+  - [Análisis de código estático](#análisis-de-código-estático)
+  - [Pruebas unitarias](#pruebas-unitarias)
+  - [API Testing](#api-testing)
 ---
 ## Presentación del problema
 
