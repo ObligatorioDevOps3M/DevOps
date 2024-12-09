@@ -28,6 +28,8 @@
   - [Análisis de código estático](#análisis-de-código-estático)
   - [Pruebas unitarias](#pruebas-unitarias)
   - [API Testing](#api-testing)
+- [Mejoras a futuro](#mejoras-a-futuro)
+
 ---
 ## Presentación del problema
 
@@ -142,52 +144,52 @@ El frontend de la aplicación se despliega en **Amazon S3**, utilizando buckets 
 
 ![Diagrama deploy](https://github.com/ObligatorioDevOps3M/DevOps/blob/main/diagramas/Deploy_v4.png)
 ## CI/CD
-
-`Github Actions` fue la herramienta seleccionada para la integración del código por su nivel de integración con las otras herramientas y por ser tendencia en la industria. 
-
-Otra herramienta evaluada fue `Jenkins`, pero fue descartada por la complejidad en su configuración y la lentitud en su funcionamiento. 
-
+ 
+`Github Actions` fue la herramienta seleccionada para la integración del código por su nivel de integración con las otras herramientas y por ser tendencia en la industria.
+ 
+Otra herramienta evaluada fue `Jenkins`, pero fue descartada por la complejidad en su configuración y la lentitud en su funcionamiento.
+ 
 Con Continuous Integration y Continuous Delivery, se busca implementar mecanismos que mejoren el time-to-market, así como la automatización de los procesos de build, test y deploy de los distintos aplicativos.
-
+ 
 En cada proyecto se creó una carpeta `.github`, y dentro una carpeta `.workflow`. Allí se definen los archivos `.yml` que especifican los pasos que se ejecutarán al interactuar con las ramas (push, pull request y merge) .
-
+ 
 ### Backend
-
+ 
 Para el pipeline de CI/CD de los respositorios de backend, se crearon los archivos: `build-and-deploy.yml` y `api-testing.yml`.
-
+ 
 #### Explicación de build-and-deploy.yml
-
-En este workflow se automatiza la construcción, prueba, empaquetado y despliegue de una aplicación Java. Se activa con _push_ o _pull request_ en ramas específicas (`main`, `staging`, `develop` y `feature/*`) y comienza configurando el entorno con JDK Corretto 8 y Maven para compilar y probar el proyecto. 
-
+ 
+En este workflow se automatiza la construcción, prueba, empaquetado y despliegue de una aplicación Java. Se activa con _push_ o _pull request_ en ramas específicas (`main`, `staging`, `develop` y `feature/*`) y comienza configurando el entorno con JDK Corretto 8 y Maven para compilar y probar el proyecto.
+ 
 Según la rama, determina el entorno (`production`, `staging` o `develop`) y clona un repositorio externo para obtener configuraciones y URLs de servicios relacionados. 
-Configura credenciales de AWS para construir una imagen Docker personalizada, que incluye variables de entorno, y la sube a un repositorio en Amazon ECR. Luego, despliega la aplicación en un clúster AWS EKS aplicando configuraciones actualizadas de Kubernetes. 
-
-Finalmente, genera la URL del servicio desplegado y la guarda en el repositorio externo para mantener sincronización entre entornos.
-
+Se construye una imágen de Docker que incluye variables de entorno, y la sube a un repositorio en Amazon ECR. Luego, despliega la aplicación en un clúster AWS EKS aplicando configuraciones actualizadas de Kubernetes.
+ 
+Finalmente, genera la URL del servicio desplegado y la guarda en el repositorio centralizado para ser utilizada como insumo en el paso siguiente.
+ 
 #### Explicación de api-testing.yml
-
+ 
 En este workflow se ejecutan pruebas de integración de las APIs y sus servicios relacionados. 
-Se activa con _push_ o _pull request_ en ramas específicas (`main`, `staging`, `develop` y `feature/*`). Inicialmente, identifica la rama activa y clona cuatro repositorios de microservicios (`Orders`, `Products`, `Payments` y `Shipping`), asegurándose de trabajar en las ramas adecuadas. 
-
-Configura JDK Corretto 8 y Maven para compilar cada microservicio, empaqueta los archivos JAR generados y los prepara para la construcción de imágenes Docker.
-
-Posteriormente, crea una red Docker compartida, levanta contenedores de los servicios interconectados y espera a que se inicien. Luego, instala **Newman** para ejecutar pruebas de integración mediante una colección Postman, simulando interacciones entre servicios. Finalmente, detiene y elimina los contenedores y la red Docker para mantener el entorno limpio.
-
+Se activa con _push_ o _pull request_ en ramas específicas (`main`, `staging`, `develop` y `feature/*`). Inicialmente, identifica la rama activa y clona cuatro repositorios de microservicios (`Orders`, `Products`, `Payments` y `Shipping`), asegurándose de trabajar en las ramas adecuadas.
+ 
+Se compilan todos los microservicios en archivos JAR y los empaqueta en imágenes Docker.
+ 
+Posteriormente, crea una red Docker compartida, levanta contenedores de los servicios interconectados y espera a que se inicien. Luego, instala **Newman** para ejecutar pruebas de integración mediante una colección Postman, simulando interacciones entre servicios.
+ 
 ![captura estructura directorios](https://github.com/ObligatorioDevOps3M/DevOps/blob/main/images/directoriosBack.png)
-
+ 
 ### Frontend
-
+ 
 Para el pipeline de CI/CD de los respositorios de backend, se crearon los archivos: `build-and-deploy-to-s3.yml` y `build-and-test.yml`.
 #### Explicación de build-and-deploy-to-s3.yml
-
-En este workflow se automatiza la construcción, pruebas y despliegue de una aplicación web a un bucket de **Amazon S3**. 
-
-Se activa con _push_ o _pull request_ en ramas específicas (`main`, `staging`, `develop` y `feature/*`), y utiliza Node.js para instalar dependencias, ejecutar pruebas y construir la aplicación. Luego, clona un repositorio externo para obtener configuraciones específicas del entorno, como el nombre del bucket de S3, según la rama activa. Configura credenciales de AWS y sincroniza el contenido generado de la carpeta `dist/apps/catalog` con el bucket correspondiente, eliminando archivos obsoletos en S3. 
-
+ 
+En este workflow se automatiza la construcción, pruebas y despliegue de una aplicación web a un bucket de **Amazon S3**.
+ 
+Se activa con _push_ o _pull request_ en ramas específicas (`main`, `staging`, `develop` y `feature/*`), y utiliza Node.js para instalar dependencias, ejecutar pruebas y construir la aplicación. Luego, clona un repositorio externo para obtener configuraciones específicas del entorno, como el nombre del bucket de S3, según la rama activa. Configura credenciales de AWS y sincroniza el contenido generado de la carpeta `dist/apps/catalog` con el bucket correspondiente, eliminando archivos obsoletos en S3.
+ 
 Este flujo permite desplegar automáticamente la aplicación en diferentes entornos (`production`, `staging`, `develop`), para asegurar la actualización del contenido en cada cambio.
-
+ 
 #### Explicación de build-and-test.yml
-
+ 
 En este workflow se automatiza la construcción y pruebas de una aplicación Node.js. Se activa con _push_ en las ramas `main`, `staging`, `develop`, `feature/*` y `test`. Realiza los siguientes pasos: clona el código del repositorio, configura Node.js (versión 20.14.0), instala las dependencias necesarias mediante `npm install`, ejecuta las pruebas unitarias con `npm test` y construye la aplicación con `npm run build`.
 
 ![captura directorios](https://github.com/ObligatorioDevOps3M/DevOps/blob/main/images/directoriosFront.png)
