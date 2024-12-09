@@ -1,0 +1,25 @@
+name: Build and Test
+
+on:
+  push:
+    branches: ['main', 'staging', 'develop', 'feature/*', 'test']
+    
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: NodeJs Setup
+        uses: actions/setup-node@v4.1.0
+        with:
+          node-version: '20.14.0'
+
+      - name: Dependencies Installation
+        run: npm install
+
+      - name: App Build
+        run: | 
+          npm test
+          npm run build

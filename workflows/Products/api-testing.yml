@@ -1,0 +1,117 @@
+name: api products testing
+on:
+    push:
+        branches: [ "main" , "staging" , "develop", "feature/*"]
+    pull_request:
+        branches: [ "main" , "staging" , "develop", "feature/*" ]
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      # Identificación de rama
+      - name: Set branch name
+        run: |
+          BRANCH_NAME=${GITHUB_REF##*/}
+          if [[ "$BRANCH_NAME" == "main" ]]; then
+            echo "CUSTOM_ENV_VAR=main" >> $GITHUB_ENV
+          elif [[ "$BRANCH_NAME" == staging ]]; then
+            echo "CUSTOM_ENV_VAR=staging" >> $GITHUB_ENV
+          else
+            echo "CUSTOM_ENV_VAR=develop" >> $GITHUB_ENV 
+          fi
+      - uses: actions/checkout@v4
+        with:
+          repository: ObligatorioDevOps3M/BackendOrdersServiceExample
+          ref: ${{ env.CUSTOM_ENV_VAR }} #porque se necesita el ref para que se ejecute en la rama que se esta trabajando ej.: feature/add-new-endpoint
+          path: BackendOrdersServiceExample
+
+      - uses: actions/checkout@v4
+        with:
+          repository: ObligatorioDevOps3M/BackendProductsServiceExample
+          ref: ${{ github.ref }}
+          path: BackendProductsServiceExample
+
+      - uses: actions/checkout@v4
+        with:
+          repository: ObligatorioDevOps3M/BackendPaymentsServiceExample
+          ref: ${{ env.CUSTOM_ENV_VAR }}
+          path: BackendPaymentsServiceExample
+
+      - uses: actions/checkout@v4
+        with:
+          repository: ObligatorioDevOps3M/BackendShippingServiceExample
+          ref: ${{ env.CUSTOM_ENV_VAR }}
+          path: BackendShippingServiceExample
+
+      - name: Set up JDK 8
+        uses: actions/setup-java@v4
+        with:
+          java-version: '8'
+          distribution: 'corretto'
+          cache: maven
+      
+      - name: Build with Maven
+        run: |
+          mvn clean package -f ./BackendOrdersServiceExample/pom.xml
+          mvn clean package -f ./BackendProductsServiceExample/pom.xml
+          mvn clean package -f ./BackendPaymentsServiceExample/pom.xml
+          mvn clean package -f ./BackendShippingServiceExample/pom.xml
+      
+      - name: Copy JARs to build context
+        run: |
+            cp ./BackendOrdersServiceExample/target/orders-service-example-0.0.1-SNAPSHOT.jar ./BackendOrdersServiceExample
+            cp ./BackendProductsServiceExample/target/products-service-example-0.0.1-SNAPSHOT.jar ./BackendProductsServiceExample
+            cp ./BackendShippingServiceExample/target/shipping-service-example-0.0.1-SNAPSHOT.jar ./BackendShippingServiceExample
+            cp ./BackendPaymentsServiceExample/target/payments-service-example-0.0.1-SNAPSHOT.jar ./BackendPaymentsServiceExample
+
+      - name: Build Docker images
+        run: |
+          docker build -t payments-service:latest ./BackendPaymentsServiceExample -f ./BackendPaymentsServiceExample/Dockerfile
+          docker build -t shipping-service:latest ./BackendShippingServiceExample -f ./BackendShippingServiceExample/Dockerfile
+          docker build -t products-service:latest ./BackendProductsServiceExample -f ./BackendProductsServiceExample/Dockerfile
+          docker build -t orders-service:latest ./BackendOrdersServiceExample -f ./BackendOrdersServiceExample/Dockerfile
+          
+      - name: List Docker images
+        run: echo "$(docker images)" 
+      - name: Create Docker network
+        run: docker network create mi-red
+      
+      - name: Run Docker containers
+        run: |
+          docker run --name payments-service --network mi-red -d -p 8083:8083 payments-service:latest
+          docker run --name shipping-service --network mi-red -d -p 8085:8085 shipping-service:latest
+          docker run --name products-service --network mi-red -d -p 8080:8080 products-service:latest
+          docker run --name orders-service --network mi-red -d -p 8081:8081 -e URL_PAYMENTS="http://payments-service:8083" -e URL_SHIPPING="http://shipping-service:8085" -e URL_PRODUCTS="http://products-service:8080" orders-service:latest
+      
+      - name: Inspect Docker network
+        run: docker network inspect mi-red
+     
+      - name: Wait for services to start
+        run: sleep 10
+      
+      - name: Check running containers
+        run: docker ps -a
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      
+      - name: Install Newman
+        run: npm install -g newman
+    
+      - name: Run integration tests with Newman
+        run: |
+          newman run ./BackendProductsServiceExample/src/test/API_Products.postman_collection.json \
+            --reporters cli \
+            --env-var orders_url="http://orders-service:8081/orders" \
+            --env-var products_url="http://product-service:8080/products" \
+            --env-var payments_url="http://payments-service:8083/payments" \
+            --env-var shipping_url="http://shipping-service:8085/shipping" 
+      
+      - name: Stop and remove containers
+        if: always()
+        run: |
+          docker stop orders-service products-service payments-service shipping-service
+          docker rm orders-service products-service payments-service shipping-service
+          docker network rm mi-red

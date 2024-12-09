@@ -1,0 +1,63 @@
+name: Build and deploy to S3
+
+on:
+  push:
+    branches: [ "main" , "staging" , "develop" , "feature/*"]
+  pull_request:
+    branches: [ 'main' , 'staging' , 'develop' , "feature/*"]
+    types:
+     - closed
+env:
+  BUCKET_NAME: 
+    
+jobs:
+  build:
+    
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: NodeJs Setup
+        uses: actions/setup-node@v4.1.0
+        with:
+          node-version: '20.14.0'
+
+      - name: Dependencies Installation
+        run: npm install
+
+      - name: App Build
+        run: |
+          npm test
+          npm run build
+
+      - name: Checkout external repository
+        uses: actions/checkout@v3
+        with:
+          repository: ObligatorioDevOps3M/DevOps
+          token: ${{ secrets.GITHUB_TOKEN }} # token del workflow
+          path: devops-repo-directory # directorio auxiliar para recibir el repo externo
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: 'us-east-1'
+
+      - name: Set S3 Bucket Name
+        run: |
+          BRANCH_NAME=${GITHUB_REF##*/}
+           if [[ "$BRANCH_NAME" == "main" ]]; then
+             CUSTOM_ENV_VAR="production"
+           elif [[ "$BRANCH_NAME" == staging ]]; then
+             CUSTOM_ENV_VAR="staging"
+           else
+             CUSTOM_ENV_VAR="develop"
+           fi
+           VALUE=$(cat devops-repo-directory/terraform/options-${CUSTOM_ENV_VAR}/s3_bucket_name.txt)
+           echo "BUCKET_NAME=$VALUE" >> $GITHUB_ENV
+
+      - name: Deploy to AWS S3
+        run: aws s3 sync dist/apps/catalog s3://${{env.BUCKET_NAME}} --delete

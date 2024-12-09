@@ -1,0 +1,115 @@
+name: CI/CD Workflow
+
+on:
+  ##Revisar que dispara build y deploy en push siempre
+  push:
+    branches: [ "main" , "staging" , "develop" , "feature/*"]
+  pull_request:
+    branches: [ "main" , "staging" , "develop" , "feature/*"]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK Corretto 8
+      uses: actions/setup-java@v4
+      with:
+        java-version: '8'
+        distribution: 'corretto'
+        cache: maven
+
+  # Build con Maven
+    - name: Build and Test with Maven
+      run: mvn -B package --file pom.xml
+    
+  # Identificacion de entorno
+    - name: Set Environment
+      run: |
+        echo "DATE=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+        BRANCH_NAME=${GITHUB_REF##*/}
+        if [[ "$BRANCH_NAME" == "main" ]]; then
+          CUSTOM_ENV_VAR="main"
+          echo "ENVIROMENT_NAME=production" >> $GITHUB_ENV
+        elif [[ "$BRANCH_NAME" == staging ]]; then
+          CUSTOM_ENV_VAR="staging"
+          echo "ENVIROMENT_NAME=staging" >> $GITHUB_ENV
+        else
+          CUSTOM_ENV_VAR="develop"
+          echo "ENVIROMENT_NAME=develop" >> $GITHUB_ENV
+        fi
+
+  # Repo DevOps    
+    - name: Checkout external repository
+      uses: actions/checkout@v3
+      with:
+        repository: ObligatorioDevOps3M/DevOps
+        token: ${{ secrets.PAT }} # token con acceso a todos los repos
+        path: devops-repo-directory # directorio auxiliar para recibir el repo externo
+
+  # Credenciales de AWS
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v3
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+        aws-region: us-east-1 # Cambia a tu región
+  
+  #Build y push de la imagen de Docker a AWS ECR
+    - name: Log in to Amazon ECR
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build and push Docker image
+      env:
+         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      run: |
+        VALUE=$(cat devops-repo-directory/terraform/options-${{ env.ENVIROMENT_NAME }}/ecr_repository_uri_products.txt)
+        REPOSITORY_URI=$VALUE 
+        echo "IMAGE_NAME=$VALUE:${{ env.ENVIROMENT_NAME }}_${{ env.DATE }}" >> $GITHUB_ENV
+        docker build . --file Dockerfile --tag $VALUE:${{ env.ENVIROMENT_NAME }}_${{ env.DATE }}
+        docker push $VALUE:${{ env.ENVIROMENT_NAME }}_${{ env.DATE }}
+
+    - name: Update deployment.yaml with image name
+      run: |
+        envsubst < k8s/deployment.yaml > k8s/deployment-updated.yaml
+
+  # Deploy de la aplicacion en AWS EKS
+    - name: Deploy Application to EKS
+      run: |
+        aws eks --region us-east-1 update-kubeconfig --name cluster_obligatorio_${{ env.ENVIROMENT_NAME }}
+        kubectl apply -f k8s/deployment-updated.yaml
+        kubectl apply -f k8s/service.yaml
+
+  # Espera la generación del service
+    - name: Wait for service deploy
+      run: sleep 20
+
+  # Obtener y guardar la URL del servicio
+    - name: Get service URL
+      id: get-service-url
+      run: |
+        if [ -f "devops-repo-directory/terraform/options-${{ env.ENVIROMENT_NAME }}/service-url-products.txt" ]; then
+            echo "FILE_EXISTS=true" >> $GITHUB_ENV
+          else
+            SERVICE_URL=$(kubectl get svc -o json | jq -r ".items[] | select(.metadata.name | test(\"products-service\")) | .status.loadBalancer.ingress[0].hostname")
+            echo "El valor de mi variable es: $SERVICE_URL"
+            echo "http://$SERVICE_URL:8080" > service-url-products.txt
+        fi
+        
+  # Guardar el archivo en el repositorio DevOps
+    - name: Commit and push service-url.txt to DevOps repo
+      run: |
+        if [ "${{ env.FILE_EXISTS }}" != "true" ]; then
+          cd devops-repo-directory/terraform/options-${{ env.ENVIROMENT_NAME }}
+          mv ../../../service-url-products.txt .
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add service-url-products.txt
+          git commit -m "Update service URL"
+          git push origin main
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
