@@ -1,0 +1,28 @@
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: payments
+  labels: 
+     app: payments
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: payments
+
+  template:
+    metadata:
+      labels:
+        app: payments
+    spec:
+      containers:
+      - name: payments
+        image: ${IMAGE_NAME}
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8083
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
