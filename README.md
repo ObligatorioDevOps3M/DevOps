@@ -17,7 +17,6 @@
   - [Equipo DevOps](#equipo-devops)
     - [Trunk Based](#trunk-based)
 - [Infraestructura como código (IaC)](#infraestructura-como-código-iac)
-  - [Utilizar IaC y desplegar la infraestructura en AWS](#utilizar-iac-y-desplegar-la-infraestructura-en-aws)
 - [CI/CD](#cicd)
   - [Backend](#backend)
     - [Explicación de build-and-deploy.yml](#explicación-de-build-and-deployyml)
@@ -125,6 +124,8 @@ Para centralizar el acceso a las APIs:
 - **Definición de rutas**: se crean rutas específicas para cada microservicio del backend.
 - **Integraciones**: Las rutas del API Gateway se integran con los servicios desplegados en el clúster EKS.
 
+![Diagrama infra](https://github.com/ObligatorioDevOps3M/DevOps/blob/main/diagramas/Infra_v2.png)
+
 ### Implementación por Etapas
 
 La infraestructura fue implementada en dos etapas:
@@ -139,8 +140,7 @@ El frontend de la aplicación se despliega en **Amazon S3**, utilizando buckets 
 - **Buckets por entorno**: Cada entorno (`production`, `staging`, `develop`) tiene su propio bucket.
 - Se le aplica a cada bucket políticas de seguridad que permiten el acceso a su contenido desde Internet.
 
-TODO: Diagrama deploy
-TODO: Diagrama infra
+![Diagrama deploy](https://github.com/ObligatorioDevOps3M/DevOps/blob/main/diagramas/Deploy_v4.png)
 ## CI/CD
 
 `Github Actions` fue la herramienta seleccionada para la integración del código por su nivel de integración con las otras herramientas y por ser tendencia en la industria. 
@@ -191,6 +191,7 @@ Este flujo permite desplegar automáticamente la aplicación en diferentes entor
 En este workflow se automatiza la construcción y pruebas de una aplicación Node.js. Se activa con _push_ en las ramas `main`, `staging`, `develop`, `feature/*` y `test`. Realiza los siguientes pasos: clona el código del repositorio, configura Node.js (versión 20.14.0), instala las dependencias necesarias mediante `npm install`, ejecuta las pruebas unitarias con `npm test` y construye la aplicación con `npm run build`.
 
 ![captura directorios](https://github.com/ObligatorioDevOps3M/DevOps/blob/main/images/directoriosFront.png)
+
 ![Diagrama de flujo de CI_CD](https://github.com/ObligatorioDevOps3M/DevOps/blob/main/diagramas/CI-CD.png)
 ## Test
 
@@ -218,6 +219,30 @@ Luego, se utiliza **Newman** para ejecutar pruebas de integración mediante una 
 
 ![Test con Newman](https://github.com/ObligatorioDevOps3M/DevOps/blob/main/images/testNewman.png)
 
+## Mejoras a Futuro
+
+En función de las oportunidades detectadas durante la implementación, a continuación se enumeran las posibles mejoras para el proyecto:
+
+1. **Quitar Repeticiones de Código**:
+    
+    - Identificar patrones repetidos en los workflows y agruparlos en **acciones reutilizables** o scripts comunes.
+
+2. **Extraer Lógicas Bash en Archivos Independientes**:
+    
+    - Crear scripts bash dedicados en una carpeta `scripts/` dentro de los repositorios.
+    - Estos scripts pueden ser llamados desde los workflows, logrando mayor modularización
+
+3. **Separar Etapas de Build, Test y Deploy**:
+    
+    - Implementar un enfoque modular en los workflows: dividir las etapas de **build**, **test**, y **deploy** en workflows separados.
+
+4. **Limitar Deploys a Ramas Estables**:
+    
+    - Configurar workflows de despliegue para que se activen únicamente con _merge_ en ramas estables (`main`, `staging`, `develop`).
+
+5. **Separar Infraestructura por Entornos**:
+    
+    - Evitar compartir infraestructura entre entornos para no crear problemas a nivel de estado de Terraform que tienen que mitigarse con código adicional
 
 
 
