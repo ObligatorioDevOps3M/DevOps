@@ -74,7 +74,7 @@ A continuación se detalla la lista de herramientas y tecnologías seleccionadas
 
 Usaremos Github Projects. Evaluamos Azure Devops y Trello, pero nos decidimos por esta herramienta porque está integrada a repositorios de Github. Resultó muy sencillo y rápido configurar un tablero Kanban que se ajuste a nuestra planificación por sprint (1 semana). También nos resultó atractivo el nivel de integración con el resto de herramientas de Github que usaremos.
 
-TODO: imagen Kanban GitHub Projects.
+![imagen Kanban GitHub Projects](https://github.com/ObligatorioDevOps3M/DevOps/blob/main/images/kanban.png)
 [Enlace al Kanban](https://github.com/orgs/ObligatorioDevOps3M/projects/3/views/3 "https://github.com/orgs/obligatoriodevops3m/projects/3/views/3")
 ## Flujos de trabajo en Git
 
@@ -87,34 +87,60 @@ Se utilizó GitFlow como estrategia para el manejo de ramas, definiendo main, st
 Para las nuevas funcionalidades se utilizan ramas efímeras `feature/<nueva_funcionalidad>` que luego se fusionan con develop, desde la cual se hacen releases al resto de las ramas estables. 
 Para solucionar bugs en producción, se utilizan ramas llamadas `hotfix`.
 
-TODO: diagrama GitFlow
+![diagrama GitFlow](https://github.com/ObligatorioDevOps3M/DevOps/blob/main/diagramas/GitFlow.png)
 ### Equipo DevOps
 
 #### Trunk Based
 
 Se utiliza Trunk Based para manejar las ramas del repositorio DevOps, por ser una estrategia más simple en la cual se parte de una rama estable "main" y se utilizan ramas efímeras `feature/<nueva_funcionalidad>` para los nuevos desarrollos, que luego se integran a la rama principal.
 
-TODO: diagrama Trunk base
+![diagrama Trunk base](https://github.com/ObligatorioDevOps3M/DevOps/blob/main/diagramas/DevOps.png)
 
 ## Infraestructura como código (IaC)
 
-Optamos por AWS por ser un estándar popular, además de ser el servicio en el que contamos con créditos asignados por la universidad.
+La infraestructura fue diseñada utilizando **Terraform**, que permite definir recursos en un entorno de nube mediante código, logrando configuraciones mantenibles, replicables y escalables. Se utilizó **AWS** como proveedor de Cloud, por ser una opción estándar en la industria y contar con créditos proporcionados por la universidad.
 
--  AWS EKS - Deploy imágenes
--  AWS ECR - Deploy de recursos
--  AWS S3 - Deploy Frontend
--  Docker
--  Terraform
--  AWS API Gateway
+A continuación, se detalla la estructura general de la infraestructura creada y sus componentes principales:
 
-TODO: diagrama infra
+### Subida de Aplicaciones en Contenedores
 
-A continuación haremos un repaso de los cambios sugeridos:
-### Utilizar IaC y desplegar la infraestructura en AWS.
+- **Imágenes Docker**: Las aplicaciones backend se empaquetan en contenedores Docker. Las imágenes se almacenan en **Amazon Elastic Container Registry (ECR)**. Creamos un repositorio por aplicación y manejamos los entornos usando tags.
+- **Kubernetes en AWS**: Se implementa un clúster de **Amazon Elastic Kubernetes Service (EKS)** para orquestar los contenedores.
+    - **Node Groups**: Se define un grupo de nodos y se configura el escalado con la cantidad mínima y máxima de instancias.
+    - **Instancias t2.micro**: Para abaratar costos, se utilizan instancias de tipo **spot** como nodos de trabajo.
+    - **Despliegue de Servicios**: Kubernetes genera los servicios necesarios para exponer las aplicaciones, tanto a nivel interno como externo, que se generan en los deploys de los repositorios al hacer merge en una rama estable.
 
-Para construir la infraestructura utilizamos Infraestructura como código (IaC), haciéndola más mantenible y escalable, además de replicable y bien documentada.
-A raíz de esto, se decidió utilizar `Terraform` como herramienta de `IaC` y `AWS` como nube para alojar los recursos definidos.
+### Networking
 
+Se hicieron configuraciones básicas de red para permitir el acceso a la infraestructura:
+- **Subredes**: se crearon subredes privadas para albergar las instancias.
+- **Tabla de ruteo**: se definieron rutas para comunicación entre subredes y acceso a Internet.
+- **Grupos de seguridad**: se asignaron reglas que restringen el tráfico entrante y saliente según puertos y direcciones IP.
+- **Internet Gateway**: se crea un punto de acceso para las instancias que necesitan conectarse a Internet.
+
+### API Gateway
+
+Para centralizar el acceso a las APIs:
+
+- **Definición de rutas**: se crean rutas específicas para cada microservicio del backend.
+- **Integraciones**: Las rutas del API Gateway se integran con los servicios desplegados en el clúster EKS.
+
+### Implementación por Etapas
+
+La infraestructura fue implementada en dos etapas:
+
+1. **Configuración Base**: se crea clúster EKS, se configuran de redes, y despliegue inicial de los servicios utilizando Terraform. Como salida en este paso, obtenemos archivos de configuración donde guardamos las URLs de los repositorios ECR. Usamos GitHub para almacenar y compartir esta información con el resto de los pipelines de los repositorios de las aplicaciones.
+2. Deploy inicial: se ejecutan los pipelines de CI/CD de las apliaciones backend de forma manual para construir los servicios que consumiremos posteriormente. Es necesario hacerlo en orden, dejando por último el BackendOrdersService, dado que el mismo depende de los anteriores servicios.
+3. **Integración y Ajustes**: creación de API Gateway y creación de las rutas asociadas a los servicios creados en el paso anterior. Las URLs se obtienen desde archivos de configuración en el repositorio DevOps.
+### Despliegue de Frontend
+
+El frontend de la aplicación se despliega en **Amazon S3**, utilizando buckets configurados para servir contenido estático.
+
+- **Buckets por entorno**: Cada entorno (`production`, `staging`, `develop`) tiene su propio bucket.
+- Se le aplica a cada bucket políticas de seguridad que permiten el acceso a su contenido desde Internet.
+
+TODO: Diagrama deploy
+TODO: Diagrama infra
 ## CI/CD
 
 `Github Actions` fue la herramienta seleccionada para la integración del código por su nivel de integración con las otras herramientas y por ser tendencia en la industria. 
@@ -147,7 +173,7 @@ Configura JDK Corretto 8 y Maven para compilar cada microservicio, empaqueta los
 
 Posteriormente, crea una red Docker compartida, levanta contenedores de los servicios interconectados y espera a que se inicien. Luego, instala **Newman** para ejecutar pruebas de integración mediante una colección Postman, simulando interacciones entre servicios. Finalmente, detiene y elimina los contenedores y la red Docker para mantener el entorno limpio.
 
-TODO: captura estructura directorios
+![captura estructura directorios](https://github.com/ObligatorioDevOps3M/DevOps/blob/main/images/directoriosBack.png)
 
 ### Frontend
 
@@ -164,8 +190,8 @@ Este flujo permite desplegar automáticamente la aplicación en diferentes entor
 
 En este workflow se automatiza la construcción y pruebas de una aplicación Node.js. Se activa con _push_ en las ramas `main`, `staging`, `develop`, `feature/*` y `test`. Realiza los siguientes pasos: clona el código del repositorio, configura Node.js (versión 20.14.0), instala las dependencias necesarias mediante `npm install`, ejecuta las pruebas unitarias con `npm test` y construye la aplicación con `npm run build`.
 
-TODO: captura directorios front
-TODO: diagrama de flujo de CI/CD
+![captura directorios](https://github.com/ObligatorioDevOps3M/DevOps/blob/main/images/directoriosFront.png)
+![Diagrama de flujo de CI_CD](https://github.com/ObligatorioDevOps3M/DevOps/blob/main/diagramas/CI-CD.png)
 ## Test
 
 ### Análisis de código estático
@@ -173,13 +199,14 @@ TODO: diagrama de flujo de CI/CD
 Para hacer análisis de código estático usamos `SonarCloud`.
 Se integró `SonarCloud` con los repositorios del equipo de desarrollo tanto frontend como para backend.
 
-TODO: imagen evidencia SonarCloud
+![imagen evidencia SonarCloud](https://github.com/ObligatorioDevOps3M/DevOps/blob/main/images/sonarCloudDashboard.png)
+![Segunda imagen evidencia SonarCloud](https://github.com/ObligatorioDevOps3M/DevOps/blob/main/images/sonarCloudOrders.png)
 [Enlace a la organización de SonarCloud](https://sonarcloud.io/organizations/obligatoriodevops3m13112024/projects)
 ### Pruebas unitarias
 Para pruebas unitarias usamos `JUnit` en backend y Jest en el frontend, que se ejecutan en los pipelines de CI/CD.
 
-TODO: captura JUnit
-TODO: captura Jest
+![captura JUnit](https://github.com/ObligatorioDevOps3M/DevOps/blob/main/images/testJUnit.png)
+![Captura Jest](https://github.com/ObligatorioDevOps3M/DevOps/blob/main/images/testJest.png)
 
 ### API Testing
 
@@ -189,8 +216,7 @@ Se construyen imágenes de Docker, se crea una red Docker compartida y se levant
 
 Luego, se utiliza **Newman** para ejecutar pruebas de integración mediante una colección Postman para simular la interacción entre servicios.
 
-TODO: imágenes de test con Newman
-
+![Test con Newman](https://github.com/ObligatorioDevOps3M/DevOps/blob/main/images/testNewman.png)
 
 
 
