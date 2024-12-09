@@ -1,12 +1,9 @@
-## Carátula
-Universidad ORT Uruguay
-Facultad de Ingeniería
-Documentación de obligatorio
-Certificado en DevOps
-Estudiantes grupo 8
-Martín Rivero – Matías Dadomo - Martín Orue
-Tutor: Federico Barceló 
-2024
+![ort_logo](https://github.com/ObligatorioDevOps3M/DevOps/blob/main/diagramas/ort_logo.jpg)
+
+<h1 align="center">Documentación de obligatorio - Certificado en DevOps 2024</h1>
+<p align="center"><b>Martín Rivero</b> – <b>Matías Dadomo</b> - <b>Martín Orue</b></p>
+<p align="center"><b>Grupo 8</b></p>
+<p><b>Tutor: Federico Barceló</b></p>
 
 ## Índice
 - [Presentación del problema](#presentación-del-problema)
