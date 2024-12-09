@@ -219,7 +219,7 @@ Luego, se utiliza **Newman** para ejecutar pruebas de integración mediante una 
 
 ![Test con Newman](https://github.com/ObligatorioDevOps3M/DevOps/blob/main/images/testNewman.png)
 
-## Mejoras a Futuro
+## Mejoras a futuro
 
 En función de las oportunidades detectadas durante la implementación, a continuación se enumeran las posibles mejoras para el proyecto:
 
@@ -243,7 +243,3 @@ En función de las oportunidades detectadas durante la implementación, a contin
 5. **Separar Infraestructura por Entornos**:
     
     - Evitar compartir infraestructura entre entornos para no crear problemas a nivel de estado de Terraform que tienen que mitigarse con código adicional
-
-
-
-
